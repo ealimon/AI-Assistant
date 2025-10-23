@@ -237,14 +237,14 @@
 		const BACKEND_URL = "https://your-worker-subdomain.workers.dev/api/assistant-answer"; // Replace after deploying your API
 		const IRRELEVANT_MESSAGE = "I'm sorry. I can only answer questions about Limon Media's digital marketing services, such as Google Ads, Website Design, or Google Business Profile optimization.";
 
-		// Suggested questions (Limon Media Services - CORRECTED)
+		// Suggested questions (Limon Media Services - Final)
 		const SUGGESTED_QUESTIONS = [
 			"What are your website subscription costs?", 
 			"Where is Limon Media located?", 
 			"How long does a website design project take?",
 			"Do you offer AI digital solutions?",
 			"Who owns Limon Media?",
-			"How can I contact your team?" // CORRECTED: Closing quote and comma are now handled correctly.
+			"How can I contact your team?" 
 		];
 
 		// Relevance guard (Limon Media Keywords - Final)
@@ -307,12 +307,12 @@
 		function demoAnswer(question) {
 			const q = question.toLowerCase();
 
-			// Website Pricing
+			// Website Pricing (NEW)
 			if (q.includes("subscription") || q.includes("cost") || q.includes("price") || q.includes("yearly") || q.includes("$")) {
 				return "Our website services include a yearly subscription fee of **$350**, plus a one-time design fee of **$150 per designed page**. Please contact us for a detailed project quote!";
 			}
 			
-			// Location
+			// Location (NEW)
 			if (q.includes("location") || q.includes("where is") || q.includes("coachella valley")) {
 				return "Limon Media is proudly located in the **Coachella Valley, Southern California**. We are happy to help with most digital marketing projects, regardless of your location.";
 			}
@@ -357,7 +357,7 @@
 			}
 
 			// Fallback (concise, with key services and experience)
-			return "Limon Media offers **Website Design**, **Google Ads**, **Google Business Profile Optimization**, and new **AI Digital Solutions**. We are located in the Coachella Valley, Southern California, and have **over 10 years** of experience.";
+			return "Limon Media offers **Website Design**, **Google Ads**, **Google Business Profile Optimization**, and new **AI Digital Solutions**. We are located in the **Coachella Valley, Southern California**, and have **over 10 years** of experience.";
 		}
 
 		function renderSuggestions() {
@@ -386,9 +386,6 @@
 			const input = document.getElementById("question");
 			const question = input.value.trim();
 			if (!question) return;
-
-			// *** IMPORTANT: The demo code below will only work if the code is running 
-			// *** in a browser (either locally or on a server).
 
 			if (!fromSuggestion && !isRelevant(question)) {
 				showAnswer(IRRELEVANT_MESSAGE);
