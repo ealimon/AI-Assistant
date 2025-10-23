@@ -237,6 +237,10 @@
 		const BACKEND_URL = "https://your-worker-subdomain.workers.dev/api/assistant-answer"; // Replace after deploying your API
 		const IRRELEVANT_MESSAGE = "I'm sorry. I can only answer questions about Limon Media's digital marketing services, such as Google Ads, Website Design, or Google Business Profile optimization.";
 		const IRRELEVANT_MESSAGE_ES = "Lo siento. Solo puedo responder preguntas sobre los servicios de marketing digital de Limon Media, como Google Ads, Diseño de Sitios Web o optimización de Perfil de Negocio de Google.";
+        
+        // NEW SOCIAL MEDIA MESSAGES
+        const SOCIAL_MEDIA_MESSAGE = "We focus on **Website Design, Google Ads, and Google Business Profile** optimization, but we'd love to discuss your full digital strategy! Please use the **Get Your Free Consultation** button below to tell us more about your social media needs.";
+        const SOCIAL_MEDIA_MESSAGE_ES = "Nos enfocamos en **Diseño Web, Google Ads y Perfil de Negocio de Google**, pero nos encantaría hablar de su estrategia digital completa. Por favor, utilice el botón **Get Your Free Consultation** a continuación para contarnos más sobre sus necesidades de redes sociales.";
 
 
 		// Suggested questions (Adjusted to 4 English and 2 Spanish)
@@ -429,8 +433,6 @@
         // PRIMARY DEMO FUNCTION (Language Selector)
         // ===========================================
 
-        // Note: This function is now effectively bypassed for suggestions.
-        // It's kept for directly typed questions if not using an actual backend.
         function demoAnswer(question) {
             if (isSpanish(question)) {
                 return demoAnswerSpanish(question);
@@ -479,6 +481,23 @@
             }
 
             const irrelevantMessage = (detectedLang === 'es') ? IRRELEVANT_MESSAGE_ES : IRRELEVANT_MESSAGE;
+
+            // --- NEW SOCIAL MEDIA INTERCEPT ---
+            const qLower = question.toLowerCase();
+            const isSocialMedia = qLower.includes("social media") || qLower.includes("redes sociales");
+            const socialMediaMessage = detectedLang === 'es' ? SOCIAL_MEDIA_MESSAGE_ES : SOCIAL_MEDIA_MESSAGE;
+
+            if (isSocialMedia) {
+                setLoading(true);
+                await new Promise(r => setTimeout(r, 750)); // Simulate thinking time
+                showAnswer(socialMediaMessage);
+                setLoading(false);
+                input.focus();
+                input.select();
+                fromSuggestion = false;
+                return; // Stop further processing
+            }
+            // --- END SOCIAL MEDIA INTERCEPT ---
 
 
 			if (!fromSuggestion && !isRelevant(question)) { // Only apply relevance check for typed questions
