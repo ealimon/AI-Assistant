@@ -8,7 +8,7 @@
 		/* LIMON MEDIA COLOR PALETTE */
 		:root {
 			--orange-dark: #cc5200; /* Darker Orange for hover/700 (still used for avatar accent) */
-			--orange: #ff6600; 	/* Primary Brand Orange (still used for avatar accent) */
+			--orange: #ff6600; 	/* Primary Brand Orange */
             --blue-dark: #1b6a7a; /* Darker Blue for hover/700 */
 			--blue: #228192;    /* Primary Brand Blue from logo */
 			--dark-grey: #222222; /* Primary Text/Accent Color */
@@ -53,13 +53,11 @@
 			display: grid; place-items: center;
 			overflow: hidden;
 		}
-		/* Added styling for the image inside the avatar */
-		.avatar img {
-			display: block; /* Ensures no extra space below image */
-			max-width: 100%;
-			max-height: 100%;
-			object-fit: contain; /* Scales image down to fit, maintaining aspect ratio */
+		/* Removed img specific styling as we are using SVG directly now */
+		.avatar svg {
+			display: block; /* Ensures no extra space below SVG */
 		}
+
 
 		.title {
 			margin: 0;
@@ -203,8 +201,11 @@
 		<div class="widget" role="application" aria-labelledby="assistant-title">
 			<div class="titlebar">
 				<div class="avatar" aria-hidden="true">
-					
-<img src="YOUR_LIMON_MEDIA_LOGO_URL.png" alt="Limon Media Logo">
+					<svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+						<rect x="0" y="0" width="64" height="64" fill="var(--blue)" rx="32"/>
+						<path d="M16 20h10v24h-4v-18h-6z" fill="#fff"/> 
+						<path d="M38 20l-6 12h8l-6 12h10v-4h-6.6l4.6-9.2L38 20z" fill="var(--orange)"/>
+					</svg>
 				</div>
 				<h1 id="assistant-title" class="title">Limon Media AI Assistant</h1>
 			</div>
