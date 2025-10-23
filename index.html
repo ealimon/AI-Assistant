@@ -53,6 +53,14 @@
 			display: grid; place-items: center;
 			overflow: hidden;
 		}
+		/* Added styling for the image inside the avatar */
+		.avatar img {
+			display: block; /* Ensures no extra space below image */
+			max-width: 100%;
+			max-height: 100%;
+			object-fit: contain; /* Scales image down to fit, maintaining aspect ratio */
+		}
+
 		.title {
 			margin: 0;
 			font-size: 16px;
@@ -195,17 +203,7 @@
 		<div class="widget" role="application" aria-labelledby="assistant-title">
 			<div class="titlebar">
 				<div class="avatar" aria-hidden="true">
-					<svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
-						<defs>
-							<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-								<stop offset="0" stop-color="#222222"/>
-								<stop offset="1" stop-color="#ff6600"/>
-							</linearGradient>
-						</defs>
-						<circle cx="32" cy="32" r="32" fill="url(#g)" opacity="0.10"/>
-						<path d="M22 20h10v24h-4v-18h-6z" fill="#ff6600"/>
-						<circle cx="37" cy="23" r="3" fill="#228192"/> 
-					</svg>
+					<img src="YOUR_LIMON_MEDIA_LOGO_URL.png" alt="Limon Media Logo">
 				</div>
 				<h1 id="assistant-title" class="title">Limon Media AI Assistant</h1>
 			</div>
@@ -242,4 +240,266 @@
 		// Suggested questions (Limon Media Services - Final)
 		const SUGGESTED_QUESTIONS = [
 			"¿Cuánto cuesta un sitio web?", // Spanish suggestion
-			"What are your website subscription
+			"What are your website subscription costs?", 
+			"Where is Limon Media located?", 
+			"¿Ofrecen soluciones de IA?", // Spanish suggestion
+			"Who owns Limon Media?",
+			"How can I contact your team?" 
+		];
+
+		// Relevance guard (Limon Media Keywords - Final)
+		const RELEVANCE_KEYWORDS = [
+			"limon media","website design","google ads","google business profile","seo","digital marketing","online advertising","leads","sales",
+			"roi","certified","consultation","process","pricing","cost","budget","team","experience","in-house",
+            "ai","artificial intelligence","digital solutions", "edward", "alicia", "limon", "owner", "owners",
+            "phone","email","contact","442-268-0928","less than 30 days","timeline",
+            "coachella valley", "southern california", "location", "subscription", "$350", "$150", "yearly",
+            // Spanish Keywords for general relevance
+            "cuanto","cuesta","sitio web","diseño","página web","soluciones ia","inteligencia artificial","contacto","dueños","experiencia"
+		];
+		const isRelevant = (q) => {
+			const s = (q || "").toLowerCase();
+			return RELEVANCE_KEYWORDS.some(k => s.includes(k));
+		};
+
+		// Simple Spanish detection: If question contains a common Spanish trigger word, assume Spanish
+		const isSpanish = (q) => {
+			const s = (q || "").toLowerCase();
+			const spanishTriggers = ["cuanto", "cuesta", "sitio", "página", "soluciones", "diseño", "dueños", "años", "contacto", "ofrecen", "su", "empresa"];
+			return spanishTriggers.some(k => s.includes(k));
+		}
+
+		// Suggestion bypass flag
+		let fromSuggestion = false;
+
+		const box = document.getElementById("answer");
+
+		function setLoading(loading) {
+			const btn = document.getElementById("submit-btn");
+			const sp = document.getElementById("btn-spinner");
+			const bt = document.getElementById("btn-text");
+			btn.disabled = loading;
+			sp.style.display = loading ? "inline-block" : "none";
+			bt.textContent = loading ? "Thinking…" : "Ask";
+		}
+
+		function showAnswer(text, opts = {}) {
+			box.classList.remove("empty", "suggestions-mode");
+			if (!text) {
+				renderSuggestions();
+			} else {
+				// Added basic formatting support (like bolding keywords)
+				let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+				box.innerHTML = formattedText;
+				box.style.borderColor = "var(--border)";
+				box.style.background = "var(--answer-bg)";
+				if (opts.type === "error") {
+					box.style.borderColor = "#fde2e2";
+					box.style.background = "#fff7f7";
+				}
+			}
+		}
+
+		async function askBackend(question) {
+			// This is where you would call your RAG backend API
+			// The live API would handle translation automatically
+			const res = await fetch(BACKEND_URL, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ question })
+			});
+			if (!res.ok) throw new Error(await res.text());
+			const data = await res.json();
+			return data.answer || "";
+		}
+        
+        // ===========================================
+        // SPANISH DEMO LOGIC
+        // ===========================================
+
+        function demoAnswerSpanish(question) {
+            const q = question.toLowerCase();
+            
+			// Website Pricing
+			if (q.includes("suscripción") || q.includes("costo") || q.includes("precio") || q.includes("anual") || q.includes("$") || (q.includes("sitio") && q.includes("web")) || (q.includes("página") && q.includes("web")) || q.includes("cuanto cuesta")) {
+				return "Nuestros servicios web incluyen una suscripción anual de **$350 USD**, más una tarifa única de diseño de **$150 USD por página diseñada**. ¡Por favor contáctenos para una cotización detallada!";
+			}
+			
+			// Location
+			if (q.includes("ubicación") || q.includes("donde está") || q.includes("coachella valley")) {
+				return "Limon Media está orgullosamente ubicada en **Coachella Valley, Sur de California**. Estamos felices de ayudar con la mayoría de los proyectos de marketing digital, sin importar su ubicación.";
+			}
+            
+			// Ownership/Experience
+            if (q.includes("dueños") || q.includes("edward") || q.includes("alicia") || q.includes("experiencia") || q.includes("cuanto tiempo")) {
+                let answer = "Limon Media es propiedad de **Edward y Alicia Limon**. Hemos brindado servicios de diseño digital, incluyendo Google Ads, por **más de 10 años**.";
+                if (q.includes("ia")) {
+                    answer += " Ahora también nos enorgullece ofrecer soluciones digitales de IA.";
+                }
+                return answer;
+            }
+            
+            // Contact Info
+            if (q.includes("teléfono") || q.includes("correo") || q.includes("email") || q.includes("contacto")) {
+                return "Puede contactarnos directamente por teléfono al **442-268-0928** o por correo electrónico a **Edward@Limon.Media**. También puede hacer clic en el botón de consulta a continuación.";
+            }
+
+			// Website Design & Timeline
+			if (q.includes("diseño") && (q.includes("sitio") || q.includes("página")) || q.includes("proceso") || q.includes("tiempo")) {
+				return "Nuestro **proceso profesional de diseño web** crea sitios visualmente atractivos. Un sitio web sencillo y profesional se puede completar típicamente en **menos de 30 días**.";
+			}
+
+            // AI Digital Solutions
+            if (q.includes("ia") || q.includes("inteligencia artificial") || q.includes("soluciones digitales")) {
+                return "¡Sí! Ahora ofrecemos **soluciones digitales de IA** para mejorar nuestros servicios principales. Esto incluye herramientas impulsadas por IA para optimizar la publicidad, el contenido web y su estrategia digital para mejores resultados.";
+            }
+
+			// Google Ads
+			if (q.includes("google ads") || q.includes("certificado") || q.includes("presupuesto")) {
+				return "Limon Media se especializa en **campañas de Google Ads basadas en datos**. Estamos **certificados por Google Ads** y nos enfocamos en maximizar su Retorno de Inversión (ROI).";
+			}
+            
+			// Fallback (concise, with key services and experience)
+			return "Limon Media ofrece **Diseño de Sitios Web**, **Google Ads**, **Optimización de Perfil de Negocio de Google** y nuevas **Soluciones Digitales de IA**. Estamos ubicados en **Coachella Valley, Sur de California**, y tenemos **más de 10 años** de experiencia.";
+        }
+
+        // ===========================================
+        // ENGLISH DEMO LOGIC (Kept for reference)
+        // ===========================================
+
+		function demoAnswerEnglish(question) {
+			const q = question.toLowerCase();
+
+			// Website Pricing
+			if (q.includes("subscription") || q.includes("price") || q.includes("yearly") || q.includes("$") || (q.includes("website") && q.includes("cost")) || q.includes("how much is a website")) {
+				return "Our website services include a yearly subscription fee of **$350**, plus a one-time design fee of **$150 per designed page**. Please contact us for a detailed project quote!";
+			}
+			
+			// Location
+			if (q.includes("location") || q.includes("where is") || q.includes("coachella valley")) {
+				return "Limon Media is proudly located in the **Coachella Valley, Southern California**. We are happy to help with most digital marketing projects, regardless of your location.";
+			}
+            
+			// Ownership/Experience
+            if (q.includes("owner") || q.includes("edward") || q.includes("alicia") || q.includes("experience") || q.includes("who owns")) {
+                let answer = "Limon Media is owned by **Edward and Alicia Limon**. We have been providing digital design services, including Google Ads, for **over 10 years**.";
+                if (q.includes("ai")) {
+                    answer += " We are now proud to also offer AI digital solutions.";
+                }
+                return answer;
+            }
+            
+            // Contact Info
+            if (q.includes("phone") || q.includes("email") || q.includes("reach") || q.includes("contact")) {
+                return "You can reach us directly by phone at **442-268-0928** or by email at **Edward@Limon.Media**. You can also click the consultation button below.";
+            }
+
+			// Website Design & Timeline
+			if (q.includes("website design") || q.includes("process") || q.includes("build") || q.includes("timeline") || q.includes("30 days")) {
+				return "Our **professional website design** process creates visually compelling sites. A simple, professional website can typically be completed in **less than 30 days**.";
+			}
+
+            // AI Digital Solutions
+            if (q.includes("ai") || q.includes("artificial intelligence") || q.includes("digital solutions")) {
+                return "Yes! We now offer **AI digital solutions** to enhance our core services. This includes AI-powered tools to improve ad targeting, optimize website content, and streamline your digital strategy for better results.";
+            }
+
+			// Google Ads
+			if (q.includes("google ads") || q.includes("roi") || q.includes("certified") || q.includes("budget")) {
+				return "Limon Media specializes in **data-driven Google Ads campaigns**. We are **Google Ads Certified** and focus on targeted mobile ads, click-to-call, and maximizing your Return on Investment (ROI). We help you set a budget that delivers real results.";
+			}
+
+			// Google Business Profile
+			if (q.includes("google business profile") || q.includes("local seo") || q.includes("local presence")) {
+				return "**Google Business Profile Optimization** is key for local search. We establish a strong local presence, ensuring customers effortlessly find your business on Google Maps and search, driving high-quality local leads.";
+			}
+
+			// Consultation/Contact (Fallback)
+			if (q.includes("consultation") || q.includes("request")) {
+				return "You can request a **free consultation** by clicking the 'Get Your Free Consultation' button below or by calling us at **442-268-0928**.";
+			}
+
+			// Fallback (concise, with key services and experience)
+			return "Limon Media offers **Website Design**, **Google Ads**, **Google Business Profile Optimization**, and new **AI Digital Solutions**. We are located in the **Coachella Valley, Southern California**, and have **over 10 years** of experience.";
+		}
+        
+        // ===========================================
+        // PRIMARY DEMO FUNCTION (Language Selector)
+        // ===========================================
+
+        function demoAnswer(question) {
+            if (isSpanish(question)) {
+                return demoAnswerSpanish(question);
+            } else {
+                return demoAnswerEnglish(question);
+            }
+        }
+
+
+		function renderSuggestions() {
+			box.classList.add("empty", "suggestions-mode");
+			box.innerHTML = `
+				<div class="suggestions">
+					<h3>Suggested Questions / Preguntas Sugeridas</h3>
+					<ul>
+						${SUGGESTED_QUESTIONS.map(q => `<li data-q="${q.replace(/"/g, '')}">${q}</li>`).join("")}
+					</ul>
+				</div>
+			`;
+			box.querySelectorAll("li").forEach(li => {
+				li.addEventListener("click", () => {
+					const q = li.getAttribute("data-q");
+					const input = document.getElementById("question");
+					input.value = q;
+					fromSuggestion = true;
+					document.getElementById("ask-form").requestSubmit();
+				});
+			});
+		}
+
+		document.getElementById("ask-form").addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const input = document.getElementById("question");
+			const question = input.value.trim();
+			if (!question) return;
+            
+            const isQSpanish = isSpanish(question);
+            const irrelevantMessage = isQSpanish ? IRRELEVANT_MESSAGE_ES : IRRELEVANT_MESSAGE;
+
+
+			if (!fromSuggestion && !isRelevant(question)) {
+				showAnswer(irrelevantMessage);
+				return;
+			}
+
+			setLoading(true);
+			try {
+				const answer = DEMO_MODE
+					? (await new Promise(r => setTimeout(r, 750)), demoAnswer(question))
+					: await askBackend(question);
+				showAnswer(answer);
+			} catch (err) {
+				console.error(err);
+				showAnswer(isQSpanish ? "Lo siento, no podemos procesar su solicitud en este momento. Por favor, inténtelo de nuevo o contáctenos directamente." : "Sorry—we can't process that right now. Please try again or contact us directly.", { type: "error" });
+			} finally {
+				setLoading(false);
+				input.focus();
+				input.select();
+				fromSuggestion = false;
+			}
+		});
+
+		// Clear button: reset input and restore suggestions
+		document.getElementById("clear-btn").addEventListener("click", () => {
+			const input = document.getElementById("question");
+			input.value = "";
+			fromSuggestion = false;
+			renderSuggestions();
+			input.focus();
+		});
+
+		// Initial render
+		renderSuggestions();
+	</script>
+</body>
+</html>
