@@ -241,12 +241,12 @@
 
 		// Suggested questions (Adjusted to 4 English and 2 Spanish)
 		const SUGGESTED_QUESTIONS = [
-			"What are your website subscription costs?", 
-			"Where is Limon Media located?", 
-			"Do you offer AI digital solutions?",
-            "How can I contact your team?",
-			"¿Cuánto cuesta un sitio web?", // Spanish: How much is a website?
-			"¿Ofrecen soluciones de IA?"    // Spanish: Do you offer AI solutions?
+			{ q: "What are your website subscription costs?", lang: "en" },
+			{ q: "Where is Limon Media located?", lang: "en" },
+			{ q: "Do you offer AI digital solutions?", lang: "en" },
+            { q: "How can I contact your team?", lang: "en" },
+			{ q: "¿Cuánto cuesta un sitio web?", lang: "es" }, // Spanish: How much is a website?
+			{ q: "¿Ofrecen soluciones de IA?", lang: "es" }    // Spanish: Do you offer AI solutions?
 		];
 
 		// Relevance guard (Limon Media Keywords - Final)
@@ -271,7 +271,7 @@
 			return spanishTriggers.some(k => s.includes(k));
 		}
 
-		// Suggestion bypass flag
+		// Suggestion bypass flag - now stores object {question, lang}
 		let fromSuggestion = false;
 
 		const box = document.getElementById("answer");
@@ -429,6 +429,8 @@
         // PRIMARY DEMO FUNCTION (Language Selector)
         // ===========================================
 
+        // Note: This function is now effectively bypassed for suggestions.
+        // It's kept for directly typed questions if not using an actual backend.
         function demoAnswer(question) {
             if (isSpanish(question)) {
                 return demoAnswerSpanish(question);
@@ -440,20 +442,22 @@
 
 		function renderSuggestions() {
 			box.classList.add("empty", "suggestions-mode");
+			// Updated SUGGESTED_QUESTIONS to be an array of objects
 			box.innerHTML = `
 				<div class="suggestions">
 					<h3>Suggested Questions / Preguntas Sugeridas</h3>
 					<ul>
-						${SUGGESTED_QUESTIONS.map(q => `<li data-q="${q.replace(/"/g, '')}">${q}</li>`).join("")}
+						${SUGGESTED_QUESTIONS.map(item => `<li data-q="${item.q.replace(/"/g, '')}" lang="${item.lang}">${item.q}</li>`).join("")}
 					</ul>
 				</div>
 			`;
 			box.querySelectorAll("li").forEach(li => {
 				li.addEventListener("click", () => {
 					const q = li.getAttribute("data-q");
+					const lang = li.getAttribute("lang"); // Get the language
 					const input = document.getElementById("question");
 					input.value = q;
-					fromSuggestion = true;
+					fromSuggestion = { question: q, lang: lang }; // Store question AND language
 					document.getElementById("ask-form").requestSubmit();
 				});
 			});
@@ -465,11 +469,19 @@
 			const question = input.value.trim();
 			if (!question) return;
             
-            const isQSpanish = isSpanish(question);
-            const irrelevantMessage = isQSpanish ? IRRELEVANT_MESSAGE_ES : IRRELEVANT_MESSAGE;
+            let detectedLang = 'en'; // Default to English
+            if (fromSuggestion) {
+                // If the submission originated from clicking a suggestion, use its explicit language
+                detectedLang = fromSuggestion.lang;
+            } else {
+                // Otherwise, perform language detection for directly typed questions
+                detectedLang = isSpanish(question) ? 'es' : 'en';
+            }
+
+            const irrelevantMessage = (detectedLang === 'es') ? IRRELEVANT_MESSAGE_ES : IRRELEVANT_MESSAGE;
 
 
-			if (!fromSuggestion && !isRelevant(question)) {
+			if (!fromSuggestion && !isRelevant(question)) { // Only apply relevance check for typed questions
 				showAnswer(irrelevantMessage);
 				return;
 			}
@@ -477,17 +489,17 @@
 			setLoading(true);
 			try {
 				const answer = DEMO_MODE
-					? (await new Promise(r => setTimeout(r, 750)), demoAnswer(question))
+					? (await new Promise(r => setTimeout(r, 750)), (detectedLang === 'es' ? demoAnswerSpanish(question) : demoAnswerEnglish(question)))
 					: await askBackend(question);
 				showAnswer(answer);
 			} catch (err) {
 				console.error(err);
-				showAnswer(isQSpanish ? "Lo siento, no podemos procesar su solicitud en este momento. Por favor, inténtelo de nuevo o contáctenos directamente." : "Sorry—we can't process that right now. Please try again or contact us directly.", { type: "error" });
+				showAnswer((detectedLang === 'es') ? "Lo siento, no podemos procesar su solicitud en este momento. Por favor, inténtelo de nuevo o contáctenos directamente." : "Sorry—we can't process that right now. Please try again or contact us directly.", { type: "error" });
 			} finally {
 				setLoading(false);
 				input.focus();
 				input.select();
-				fromSuggestion = false;
+				fromSuggestion = false; // Reset fromSuggestion after use
 			}
 		});
 
@@ -495,7 +507,7 @@
 		document.getElementById("clear-btn").addEventListener("click", () => {
 			const input = document.getElementById("question");
 			input.value = "";
-			fromSuggestion = false;
+			fromSuggestion = false; // Reset to false
 			renderSuggestions();
 			input.focus();
 		});
