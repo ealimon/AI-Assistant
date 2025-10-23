@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Limon Media AI Assistant</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style>
+		/* LIMON MEDIA COLOR PALETTE */
+		:root {
+			--orange-dark: #cc5200; /* Darker Orange for hover/700 */
+			--orange: #ff6600; 	/* Primary Brand Orange */
+			--dark-grey: #222222; /* Primary Text/Accent Color */
+			--bg: #ffffff;
+			--text: #0f172a; /* Dark text */
+			--muted: #475569; /* Muted text */
+			--border: #e2e8f0;
+			--answer-bg: #f8fafc;
+		}
+		* { box-sizing: border-box; }
+		html, body {
+			height: 100%;
+			margin: 0;
+			background: var(--bg);
+			color: var(--text);
+			font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+		}
+		.wrap { max-width: 420px; margin: 0 auto; padding: 14px; }
+		.widget {
+			border: 1px solid var(--border);
+			border-radius: 16px;
+			background: #fff;
+			box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+			padding: 12px 16px 16px 16px;
+			display: grid;
+			gap: 12px;
+		}
+
+		.titlebar {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			align-items: center;
+			gap: 10px;
+			padding-bottom: 8px;
+			border-bottom: 1px solid var(--border);
+		}
+		.avatar {
+			width: 40px; height: 40px;
+			border-radius: 50%;
+			border: 2px solid #ffccb3; /* Light orange border */
+			background: #fff;
+			display: grid; place-items: center;
+			overflow: hidden;
+		}
+		.title {
+			margin: 0;
+			font-size: 16px;
+			font-weight: 800;
+			color: var(--dark-grey); /* Use dark grey for title */
+			line-height: 1.2;
+			letter-spacing: 0.2px;
+		}
+
+		.answer-box {
+			background: var(--answer-bg);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 12px;
+			min-height: 160px;
+			max-height: 280px;
+			overflow: auto;
+			font-size: 14px;
+			line-height: 1.5;
+			white-space: pre-wrap;
+		}
+		.answer-box.suggestions-mode { max-height: none; overflow: visible; }
+		.answer-box.empty { color: var(--muted); }
+
+		.suggestions h3 { margin: 0 0 8px 0; font-size: 13px; color: var(--dark-grey); }
+		.suggestions ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+		.suggestions li {
+			background: var(--orange); /* Orange background for suggestions */
+			color: var(--dark-grey);
+			border: 1px solid var(--orange-dark);
+			border-radius: 10px;
+			padding: 10px 12px;
+			cursor: pointer;
+			font-weight: 600;
+			transition: transform .05s ease, box-shadow .15s ease, background .15s ease;
+			word-wrap: break-word;
+		}
+		.suggestions li:hover { background: var(--orange-dark); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+		.suggestions li:active { transform: translateY(1px); }
+
+		form { display: grid; gap: 8px; }
+		.input-row {
+			display: grid;
+			grid-template-columns: 1fr auto auto; /* textarea | Ask | Clear */
+			gap: 8px;
+			align-items: stretch;
+		}
+		textarea {
+			resize: vertical;
+			min-height: 46px;
+			max-height: 120px;
+			padding: 10px 12px;
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			font-size: 14px;
+			line-height: 1.35;
+			outline: none;
+			transition: box-shadow .15s ease, border-color .15s ease;
+		}
+		textarea:focus { border-color: #ff9933; box-shadow: 0 0 0 3px rgba(255,102,0,0.25); } /* Orange focus ring */
+
+		button {
+			border: 0;
+			border-radius: 10px;
+			padding: 0 16px;
+			font-size: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 110px;
+			transition: background .15s ease, transform .05s ease, color .15s ease, border-color .15s ease;
+		}
+		/* Ask (primary) */
+		#submit-btn {
+			background: var(--orange); /* Primary Orange */
+			color: var(--dark-grey);
+		}
+		#submit-btn:hover { background: var(--orange-dark); color: #fff; }
+		#submit-btn:active { transform: translateY(1px); }
+		#submit-btn:disabled { opacity: .65; cursor: not-allowed; background: #ff9933; } /* Lighter disabled orange */
+
+		/* Clear (secondary) */
+		#clear-btn {
+			min-width: 72px;
+			padding: 0 12px;
+			background: #fff;
+			color: var(--muted);
+			border: 1px solid var(--border);
+		}
+		#clear-btn:hover { color: var(--dark-grey); border-color: #cbd5e1; background: #f8fafc; }
+		#clear-btn:active { transform: translateY(1px); }
+
+		.spinner {
+			width: 14px; height: 14px;
+			border: 2px solid rgba(0,0,0,0.2);
+			border-top-color: rgba(0,0,0,0.7);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin-right: 8px;
+			display: none;
+		}
+		@keyframes spin { to { transform: rotate(360deg); } }
+
+		/* New Footer for Limon Media CTA */
+		.footer {
+			border-top: 1px solid var(--border);
+			padding-top: 10px;
+			display: grid;
+			gap: 8px;
+			text-align: center;
+		}
+		.cta-btn {
+			display: inline-block;
+			text-align: center;
+			background: var(--dark-grey); /* Dark Grey CTA button */
+			color: #fff;
+			padding: 10px 14px;
+			border-radius: 10px;
+			text-decoration: none;
+			font-weight: 700;
+			font-size: 14px;
+		}
+		.cta-btn:hover { background: #333333; }
+
+		.disclaimer { font-size: 11px; color: var(--muted); }
+
+		.sr-only {
+			position: absolute;
+			width: 1px; height: 1px;
+			padding: 0; margin: -1px;
+			overflow: hidden; clip: rect(0,0,0,0);
+			white-space: nowrap; border: 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="widget" role="application" aria-labelledby="assistant-title">
+			<div class="titlebar">
+				<div class="avatar" aria-hidden="true">
+					<svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+						<defs>
+							<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+								<stop offset="0" stop-color="#222222"/>
+								<stop offset="1" stop-color="#ff6600"/>
+							</linearGradient>
+						</defs>
+						<circle cx="32" cy="32" r="32" fill="url(#g)" opacity="0.10"/>
+						<path d="M22 20h10v24h-4v-18h-6z" fill="#ff6600"/>
+						<circle cx="37" cy="23" r="3" fill="#222222"/>
+					</svg>
+				</div>
+				<h1 id="assistant-title" class="title">Limon Media AI Assistant</h1>
+			</div>
+
+			<div id="answer" class="answer-box suggestions-mode empty" aria-live="polite"></div>
+
+			<form id="ask-form">
+				<label class="sr-only" for="question">Your question</label>
+				<div class="input-row">
+					<textarea id="question" name="question" placeholder="Ask about our services…" required></textarea>
+					<button id="submit-btn" type="submit" aria-label="Submit question">
+						<span id="btn-spinner" class="spinner"></span>
+						<span id="btn-text">Ask</span>
+					</button>
+					<button id="clear-btn" type="button" aria-label="Clear question">Clear</button>
+				</div>
+			</form>
+
+			<div class="footer">
+				<a class="cta-btn" href="https://www.limon.media/contact" target="_blank" rel="noopener">Get Your Free Consultation</a>
+				<div class="disclaimer">Answers are based on Limon Media public services and general information.</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// CONFIG
+		const DEMO_MODE = true; // Set to false after you deploy the backend
+		const BACKEND_URL = "https://your-worker-subdomain.workers.dev/api/assistant-answer"; // Replace after deploying your API
+		const IRRELEVANT_MESSAGE = "I'm sorry. I can only answer questions about Limon Media's digital marketing services, such as Google Ads, Website Design, or Google Business Profile optimization.";
+
+		// Suggested questions (Limon Media Services)
+		const SUGGESTED_QUESTIONS = [
+			"What is your approach to Google Ads?",
+			"How long does a website design project take?",
+			"What is Google Business Profile optimization?",
+			"Do you serve clients outside of Southern California?",
+			"How do I request a free consultation?",
+			"Are you Google Ads certified?"
+		];
+
+		// Relevance guard (Limon Media Keywords)
+		const RELEVANCE_KEYWORDS = [
+			"limon media","website design","google ads","google business profile","seo","digital marketing","online advertising","leads","sales",
+			"roi","certified","consultation","process","pricing","cost","budget","team","experience","so cal","southern california","in-house"
+		];
+		const isRelevant = (q) => {
+			const s = (q || "").toLowerCase();
+			return RELEVANCE_KEYWORDS.some(k => s.includes(k));
+		};
+
+		// Suggestion bypass flag
+		let fromSuggestion = false;
+
+		const box = document.getElementById("answer");
+
+		function setLoading(loading) {
+			const btn = document.getElementById("submit-btn");
+			const sp = document.getElementById("btn-spinner");
+			const bt = document.getElementById("btn-text");
+			btn.disabled = loading;
+			sp.style.display = loading ? "inline-block" : "none";
+			bt.textContent = loading ? "Thinking…" : "Ask";
+		}
+
+		function showAnswer(text, opts = {}) {
+			box.classList.remove("empty", "suggestions-mode");
+			if (!text) {
+				renderSuggestions();
+			} else {
+				// Added basic formatting support (like bolding keywords)
+				let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+				box.innerHTML = formattedText;
+				box.style.borderColor = "var(--border)";
+				box.style.background = "var(--answer-bg)";
+				if (opts.type === "error") {
+					box.style.borderColor = "#fde2e2";
+					box.style.background = "#fff7f7";
+				}
+			}
+		}
+
+		async function askBackend(question) {
+			// This is where you would call your RAG backend API
+			const res = await fetch(BACKEND_URL, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ question })
+			});
+			if (!res.ok) throw new Error(await res.text());
+			const data = await res.json();
+			return data.answer || "";
+		}
+
+		// Demo answers tailored to Limon Media services
+		function demoAnswer(question) {
+			const q = question.toLowerCase();
+
+			// Google Ads
+			if (q.includes("google ads") || q.includes("roi") || q.includes("certified") || q.includes("budget")) {
+				return "Limon Media specializes in **data-driven Google Ads campaigns**. We are **Google Ads Certified** and focus on targeted mobile ads, click-to-call, and maximizing your Return on Investment (ROI). We help you set a budget that delivers real results.";
+			}
+
+			// Website Design
+			if (q.includes("website design") || q.includes("process") || q.includes("build") || q.includes("user-friendly")) {
+				return "Our **professional website design** process creates visually compelling and user-friendly sites optimized for conversions and search engines. We handle the design, mobile-responsiveness, and SEO to ensure your online presence is top-tier.";
+			}
+
+			// Google Business Profile
+			if (q.includes("google business profile") || q.includes("local seo") || q.includes("local presence")) {
+				return "**Google Business Profile Optimization** is key for local search. We establish a strong local presence, ensuring customers effortlessly find your business on Google Maps and search, driving high-quality local leads.";
+			}
+
+			// Consultation/Contact
+			if (q.includes("consultation") || q.includes("request") || q.includes("contact") || q.includes("call")) {
+				return "You can request a **free consultation** by clicking the 'Get Your Free Consultation' button below or visiting our Contact page. We'll discuss your goals and how our services can help.";
+			}
+
+			// Service Area
+			if (q.includes("serve") || q.includes("area") || q.includes("california")) {
+				return "While we are a Southern California-based agency, we offer comprehensive digital marketing services to **clients across the USA**, managing all services in-house to ensure high quality.";
+			}
+
+			// Fallback (concise, with key services)
+			return "Limon Media offers **Professional Website Design**, **Data-Driven Google Ads Campaigns**, and **Google Business Profile Optimization**. We aim to help businesses generate more leads and sales.";
+		}
+
+		function renderSuggestions() {
+			box.classList.add("empty", "suggestions-mode");
+			box.innerHTML = `
+				<div class="suggestions">
+					<h3>Suggested Questions about our Services</h3>
+					<ul>
+						${SUGGESTED_QUESTIONS.map(q => `<li data-q="${q.replace(/"/g, '')}">${q}</li>`).join("")}
+					</ul>
+				</div>
+			`;
+			box.querySelectorAll("li").forEach(li => {
+				li.addEventListener("click", () => {
+					const q = li.getAttribute("data-q");
+					const input = document.getElementById("question");
+					input.value = q;
+					fromSuggestion = true;
+					document.getElementById("ask-form").requestSubmit();
+				});
+			});
+		}
+
+		document.getElementById("ask-form").addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const input = document.getElementById("question");
+			const question = input.value.trim();
+			if (!question) return;
+
+			if (!fromSuggestion && !isRelevant(question)) {
+				showAnswer(IRRELEVANT_MESSAGE);
+				return;
+			}
+
+			setLoading(true);
+			try {
+				const answer = DEMO_MODE
+					? (await new Promise(r => setTimeout(r, 750)), demoAnswer(question))
+					: await askBackend(question);
+				showAnswer(answer);
+			} catch (err) {
+				console.error(err);
+				showAnswer("Sorry—we can't process that right now. Please try again or contact us directly.", { type: "error" });
+			} finally {
+				setLoading(false);
+				input.focus();
+				input.select();
+				fromSuggestion = false;
+			}
+		});
+
+		// Clear button: reset input and restore suggestions
+		document.getElementById("clear-btn").addEventListener("click", () => {
+			const input = document.getElementById("question");
+			input.value = "";
+			fromSuggestion = false;
+			renderSuggestions();
+			input.focus();
+		});
+
+		// Initial render
+		renderSuggestions();
+	</script>
+</body>
+</html>
