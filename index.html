@@ -32,39 +32,40 @@
 			border-radius: 16px;
 			background: #fff;
 			box-shadow: 0 10px 30px rgba(2,6,23,0.06);
-			padding: 12px 16px 16px 16px;
+			padding: 10px 14px 14px 14px; /* Reduced padding here */
 			display: grid;
-			gap: 12px;
+			gap: 10px; /* Reduced general gap */
 		}
 
 		.titlebar {
 			display: grid;
 			grid-template-columns: auto 1fr;
 			align-items: center;
-			gap: 10px;
+			gap: 8px; /* Reduced gap */
 			padding-bottom: 8px;
 			border-bottom: 1px solid var(--border);
 		}
 		.avatar-link {
 			text-decoration: none;
 			cursor: pointer;
-			display: block; /* Make sure the link occupies the space */
+			display: block;
 			transition: opacity 0.1s ease;
 		}
 		.avatar-link:hover {
-			opacity: 0.85; /* Visual feedback for clicking the avatar */
+			opacity: 0.85;
 		}
 		.avatar {
-			width: 40px; height: 40px;
+			width: 36px; height: 36px; /* Reduced Avatar Size */
 			border-radius: 50%;
-			border: 2px solid #b3e6ff; /* Light blue border */
+			border: 2px solid #b3e6ff;
 			background: #fff;
 			display: grid; place-items: center;
 			overflow: hidden;
 		}
-		/* Removed img specific styling as we are using SVG directly now */
 		.avatar svg {
-			display: block; /* Ensures no extra space below SVG */
+			width: 32px; /* Adjusted SVG size to fit new avatar dimensions */
+			height: 32px;
+			display: block;
 		}
 
 
@@ -72,7 +73,7 @@
 			margin: 0;
 			font-size: 16px;
 			font-weight: 800;
-			color: var(--dark-grey); /* Use dark grey for title */
+			color: var(--dark-grey);
 			line-height: 1.2;
 			letter-spacing: 0.2px;
 		}
@@ -82,7 +83,7 @@
 			border: 1px solid var(--border);
 			border-radius: 12px;
 			padding: 12px;
-			min-height: 160px;
+			min-height: 140px; /* Reduced min-height here */
 			max-height: 280px;
 			overflow: auto;
 			font-size: 14px;
@@ -92,14 +93,18 @@
 		.answer-box.suggestions-mode { max-height: none; overflow: visible; }
 		.answer-box.empty { color: var(--muted); }
 
-		.suggestions h3 { margin: 0 0 8px 0; font-size: 13px; color: var(--dark-grey); }
-		.suggestions ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+		.suggestions h3 { 
+            margin: 0 0 6px 0; /* Reduced bottom margin */
+            font-size: 13px; 
+            color: var(--dark-grey); 
+        }
+		.suggestions ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; } /* Reduced gap */
 		.suggestions li {
-			background: var(--blue); /* Blue background for suggestions */
-			color: #ffffff; /* White text for blue background */
+			background: var(--blue);
+			color: #ffffff;
 			border: 1px solid var(--blue-dark);
 			border-radius: 10px;
-			padding: 10px 12px;
+			padding: 8px 10px; /* Reduced padding on suggestions */
 			cursor: pointer;
 			font-weight: 600;
 			transition: transform .05s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
@@ -111,15 +116,15 @@
 		form { display: grid; gap: 8px; }
 		.input-row {
 			display: grid;
-			grid-template-columns: 1fr auto auto; /* textarea | Ask | Clear */
+			grid-template-columns: 1fr auto auto;
 			gap: 8px;
 			align-items: stretch;
 		}
 		textarea {
 			resize: vertical;
-			min-height: 46px;
-			max-height: 120px;
-			padding: 10px 12px;
+			min-height: 40px; /* Slightly reduced min-height for textarea */
+			max-height: 80px; /* Reduced max-height for better control */
+			padding: 8px 10px; /* Reduced padding */
 			border: 1px solid var(--border);
 			border-radius: 10px;
 			font-size: 14px;
@@ -127,34 +132,34 @@
 			outline: none;
 			transition: box-shadow .15s ease, border-color .15s ease;
 		}
-		textarea:focus { border-color: #79c8d5; box-shadow: 0 0 0 3px rgba(34,129,146,0.25); } /* Blue focus ring */
+		textarea:focus { border-color: #79c8d5; box-shadow: 0 0 0 3px rgba(34,129,146,0.25); }
 
 		button {
 			border: 0;
 			border-radius: 10px;
-			padding: 0 16px;
+			padding: 0 14px; /* Adjusted padding */
 			font-size: 14px;
 			font-weight: 700;
 			cursor: pointer;
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			min-width: 110px;
+			min-width: 90px; /* Reduced min width */
 			transition: background .15s ease, transform .05s ease, color .15s ease, border-color .15s ease;
 		}
 		/* Ask (primary) */
 		#submit-btn {
-			background: var(--blue); /* Primary Blue */
-			color: #ffffff; /* White text for blue background */
+			background: var(--blue);
+			color: #ffffff;
 		}
 		#submit-btn:hover { background: var(--blue-dark); color: #fff; }
 		#submit-btn:active { transform: translateY(1px); }
-		#submit-btn:disabled { opacity: .65; cursor: not-allowed; background: #79c8d5; } /* Lighter disabled blue */
+		#submit-btn:disabled { opacity: .65; cursor: not-allowed; background: #79c8d5; }
 
 		/* Clear (secondary) */
 		#clear-btn {
-			min-width: 72px;
-			padding: 0 12px;
+			min-width: 60px; /* Reduced min width */
+			padding: 0 10px; /* Reduced padding */
 			background: #fff;
 			color: var(--muted);
 			border: 1px solid var(--border);
@@ -176,7 +181,7 @@
 		/* New Footer for Limon Media CTA */
 		.footer {
 			border-top: 1px solid var(--border);
-			padding-top: 10px;
+			padding-top: 8px; /* Reduced padding */
 			display: grid;
 			gap: 8px;
 			text-align: center;
@@ -184,9 +189,9 @@
 		.cta-btn {
 			display: inline-block;
 			text-align: center;
-			background: var(--dark-grey); /* Dark Grey CTA button */
+			background: var(--dark-grey);
 			color: #fff;
-			padding: 10px 14px;
+			padding: 8px 12px; /* Reduced padding */
 			border-radius: 10px;
 			text-decoration: none;
 			font-weight: 700;
@@ -211,7 +216,7 @@
 			<div class="titlebar">
                 <a href="https://www.limon.media/" target="_blank" rel="noopener" class="avatar-link">
                     <div class="avatar" aria-hidden="true">
-                        <svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+                        <svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
                             <rect x="0" y="0" width="64" height="64" fill="var(--blue)" rx="32"/>
                             <path d="M16 20h10v24h-4v-18h-6z" fill="#fff"/> 
                             <path d="M38 20l-6 12h8l-6 12h10v-4h-6.6l4.6-9.2L38 20z" fill="var(--orange)"/>
@@ -258,12 +263,10 @@
         const VAGUE_PRICE_MESSAGE_ES = "Nuestros precios varían según el alcance de su proyecto (por ejemplo, el tamaño del sitio web, el presupuesto de Google Ads). Utilice el botón **Get Your Free Consultation** a continuación para darnos más detalles, ¡y le proporcionaremos una cotización detallada!";
 
 
-		// Suggested questions (Restored)
+		// Suggested questions (Restored - only 4 for the compact view)
 		const SUGGESTED_QUESTIONS = [
 			{ q: "What are your website subscription costs?", lang: "en" },
-			{ q: "Where is Limon Media located?", lang: "en" },
 			{ q: "Do you offer AI digital solutions?", lang: "en" },
-            { q: "How can I contact your team?", lang: "en" },
 			{ q: "¿Cuánto cuesta un sitio web?", lang: "es" }, // Spanish: How much is a website?
 			{ q: "¿Ofrecen soluciones de IA?", lang: "es" }    // Spanish: Do you offer AI solutions?
 		];
